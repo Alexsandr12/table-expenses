@@ -1,0 +1,58 @@
+{% extends "bootstrap/base.html" %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Таблица расходов</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+{% block body %}
+<body>
+    <h1>Таблица расходов</h1>
+    <table class="table table-bordered">
+          <tr>
+              <th>Индекс</th>
+              <th>Рубли</th>
+              <th>Доллары</th>
+              <th>Дата</th>
+              <th>Расход/Доход</th>
+              <th>Описание</th>
+          </tr>
+        <tbody>
+            {% for d in data %}
+                {% if d[4]=='доход' %}
+                    <tr class="success">
+                        {% for d1 in d %}
+                        <td>{{d1}}</td>
+                        {% endfor %}
+                    </tr>
+                {% elif d[4]=='расход' %}
+                    <tr class="danger">
+                        {% for d1 in d %}
+                        <td>{{d1}}</td>
+                        {% endfor %}
+                    </tr>
+                {% else %}
+                    <tr>
+                        {% for d1 in d %}
+                        <td>{{d1}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="post">
+        <input type="number" min="1" name="id" placeholder="id" class="form-control">
+        <input type="number" step="0.01" min="0" placeholder="0,00" name="rub" placeholder="рубли" class="form-control">
+        <input type="text" name="w/i" placeholder="доход/расход" class="form-control">
+        <input type="text" name="desc" placeholder="описание" class="form-control">
+        <button type="submit" formaction="/add_data" class="btn btn-success">Добавить в таблицу</button>
+        <button type="submit" formaction="/delete_data" class="btn btn-danger">Удалить строку</button>
+        <button type="submit" formaction="/update_data" class="btn btn-secondary">Изменить данные</button>
+        <button type="submit" formaction="/delete_all_data" class="btn btn-danger">Удалить все записи в таблице</button>
+    </form>
+</body>
+{% endblock %}
+</html>
