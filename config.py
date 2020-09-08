@@ -1,0 +1,8 @@
+HOST = "localhost"
+USER = "alexandr"
+PASSWORD = "1"
+DATABASE = "mysqltest"
+TABLE_NAME = "expenses"
+ERROR_PAGE = "Error_page.html"
+METHODS = "POST"
+REDIRECT_PAGE = "index"

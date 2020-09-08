@@ -1,139 +1,160 @@
 import requests
 import re
 
-from flask import Flask, request, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
-
-import redis
-import mysql.connector
+from flask import Flask, request, redirect, url_for, render_template
 from mysql.connector import Error
 
+from config import ERROR_PAGE, METHODS, REDIRECT_PAGE
+from db import (
+    redis_conn,
+    mysql_conn,
+    mysql_cursor,
+    get_all_data,
+    get_data_to_id,
+    add_line,
+    delete_line_to_id,
+    delete_all_lines,
+    update_line
+)
+from logger import logger_expenses
 
-redis_conn = redis.Redis()
+# TODO: аннотации и описание
 
-def get_dollar_value():
-    dollar_html = requests.get('https://www.banki.ru/products/currency/usd/')
-    dollar_value = re.search(r'<div class="currency-table__large-text">(\d+.\d+)', dollar_html.text).group(1)
-    dollar_value = dollar_value.replace(',','.')
-    return dollar_value
-
-dollar_value = redis_conn.get('dollar')
-if dollar_value is None:
-    dollar_value = get_dollar_value()
-    redis_conn.setex("dollar", 3600, dollar_value)
-else:
-    dollar_value = dollar_value.decode("utf-8", "replace")
-dollar_value = float(dollar_value)
-
-
-conn = mysql.connector.connect(host='localhost', user='alexandr', password='1', database='mysqltest')
-cursor = conn.cursor()
-
-def execute_data(conn, query):
-    result = None
-    try:
-        cursor.execute(query)
-        result = cursor.fetchall()
-        return result
-    except Error as e:
-        print(f"Ошибка {e}")
-select_data = "SELECT * FROM expenses"
-data = execute_data(conn, select_data)
-
-def execute_data_id(conn, query):
-    id = int(request.form['id'])
-    result = None
-    try:
-        cursor.execute(query, (id,))
-        result = cursor.fetchall()
-        return result
-    except Error as e:
-        print(f"Ошибка {e}")
 
 app = Flask(__name__)
 Bootstrap(app)
 
-@app.route('/', methods=['GET'])
+
+def get_dollar_value() -> float:
+    """Получаем значения доллара из redis, если значения нет, парсим сайт,
+    для получения значения и записываем его в redis.
+
+    Return:
+        float: значение доллара.
+    """
+    dollar_value = redis_conn.get("dollar")
+    if dollar_value is None:
+        dollar_html = requests.get("https://www.banki.ru/products/currency/usd/")
+        dollar_value = re.search(
+            r'<div class="currency-table__large-text">(\d+.\d+)', dollar_html.text
+        ).group(1)
+        dollar_value = dollar_value.replace(",", ".")
+    else:
+        dollar_value = dollar_value.decode("utf-8", "replace")
+    return float(dollar_value)
+
+
+def get_line_to_id(line_id: int) -> tuple:
+    """Получение кортежа с данными строки из таблицы базы данных.
+
+    Args:
+        line_id: id строки в таблице.
+
+    Return:
+        tuple: кортеж с данными строки из таблицы.
+    """
+    try:
+       # print(get_data_to_id(line_id)) Почему не работает ???
+        return get_data_to_id(line_id)[0]
+    except Error as e:
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
+
+
+@app.route("/", methods=["GET"])
 def index():
-    return render_template('expenses.html', data=data)
+    try:
+        all_data = get_all_data()
+        return render_template("index.html", data=all_data)
+    except Error as e:
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
 
-@app.route('/add_data', methods=['POST'])
+
+@app.route("/add_data", methods=[METHODS])
 def add_data():
-        rubles = float(request.form['rub'])
-        waste_or_income = request.form['w/i']
-        description = request.form['desc']
-        dollars = round(rubles / dollar_value, 2)
-        add_in_expenses = """INSERT INTO expenses 
-        ( rubles, dollars, date_time, waste_or_income, description ) 
-        VALUES ( %s, %s, NOW(), %s, %s )"""
-        val = (rubles, dollars, waste_or_income, description)
+    form = request.form
+    rubles = float(form["rub"])
+    waste_or_income = form["w/i"]
+    description = form["desc"]
+    dollars = round(rubles / get_dollar_value(), 2)
+    try:
+        add_line(rubles, dollars, waste_or_income, description)
+        logger_expenses.debug(f"Добавлена строка с данными: "
+                              f"rubles = {rubles}, dollars = {dollars}, "
+                              f"w/i = {waste_or_income}, description = {description}"
+                              )
+        return redirect(url_for(REDIRECT_PAGE))
+    except Error as e:
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
 
-        try:
-            cursor.execute(add_in_expenses, val)
-            conn.commit()
-        except Error as e:
-            print(f"хуита {e}")
-        return redirect(url_for('index'))
 
-@app.route('/delete_data', methods=['POST'])
+@app.route("/delete_data", methods=[METHODS])
 def delete_data():
-    id = int(request.form['id'])
-    delete_in_expenses = "DELETE FROM expenses WHERE id = %s"
+    line_id = int(request.form["id"])
+    delete_line = get_data_to_id(line_id)[0]
+    logger_expenses.debug(f"Запрос на удаление строки с id {line_id}, данные строки: "
+                          f"rubles = {delete_line[1]}, dollars = {delete_line[2]}, date = {delete_line[3]}, "
+                          f"w/i = {delete_line[4]}, description = {delete_line[5]}"
+                          )
     try:
-        cursor.execute(delete_in_expenses, (id,))
-        conn.commit()
+        delete_line_to_id(line_id)
+        logger_expenses.debug(f"Удалена строка с id {line_id}")
+        return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
-        print(f"хуита {e}")
-    return redirect(url_for('index'))
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
 
-@app.route('/delete_all_data', methods=['POST'])
+
+@app.route("/delete_all_data", methods=[METHODS])
 def delete_all_data():
-    delete_all = "DELETE FROM expenses"
     try:
-        cursor.execute(delete_all)
-        conn.commit()
+        delete_all_lines()
+        logger_expenses.debug(f"Все данные удалены")
+        return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
-        print(f"хуита {e}")
-    return redirect(url_for('index'))
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
 
-@app.route('/update_data', methods=['POST'])
+
+@app.route("/update_data", methods=[METHODS])
 def update_data():
-    select_data = "SELECT * FROM expenses WHERE id = %s"
-    data_id = execute_data_id(conn, select_data)
-    data_id = data_id[0]
-
-    id = int(request.form['id'])
-    if request.form['rub']:
-        rubles = float(request.form['rub'])
+    line_id = int(request.form["id"])
+    line_to_id = get_line_to_id(line_id)
+    logger_expenses.debug(f"Запрос на изменение данных в строке с id {line_id}: "
+                          f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
+                          f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
+                          )
+    form = request.form
+    if form["rub"]:
+        rubles = float(form["rub"])
     else:
-        rubles = data_id[1]
+        rubles = line_to_id[1]
 
-    if request.form['w/i']:
-        waste_or_income = request.form['w/i']
+    if form["w/i"]:
+        waste_or_income = form["w/i"]
     else:
-        waste_or_income = data_id[4]
+        waste_or_income = line_to_id[4]
 
-    if request.form['desc']:
-        description = request.form['desc']
+    if form["desc"]:
+        description = form["desc"]
     else:
-        description = data_id[5]
+        description = line_to_id[5]
 
-    dollars = round(rubles / dollar_value, 2)
-    update_in_expenses = """UPDATE expenses SET
-    rubles = %s,
-    waste_or_income = %s,
-    description = %s,
-    dollars = %s,
-    date_time = NOW()
-    WHERE id = %s"""
-    val = (rubles, waste_or_income, description, dollars, id)
+    dollars = round(rubles / get_dollar_value(), 2)
     try:
-        cursor.execute(update_in_expenses, val)
-        conn.commit()
+        update_line(rubles, waste_or_income, description, dollars, line_id)
+        line_to_id = get_line_to_id(line_id)
+        logger_expenses.debug(f"Данные изменены на: "
+                              f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
+                              f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
+                              )
+        return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
-        print(f"хуита {e}")
-    return redirect(url_for('index'))
-
+        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
+        return render_template(ERROR_PAGE)
 
 
 if __name__ == "__main__":
