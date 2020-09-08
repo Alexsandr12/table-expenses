@@ -72,7 +72,9 @@ def delete_all_lines():
     mysql_conn.commit()
 
 
-def update_line(rubles: float, waste_or_income: str, description: str, dollars: float, line_id: int):
+def update_line(
+    rubles: float, waste_or_income: str, description: str, dollars: float, line_id: int
+):
     """Обновление данных строки в таблице expenses базы данных.
 
     Args:
@@ -90,5 +92,7 @@ def update_line(rubles: float, waste_or_income: str, description: str, dollars: 
         dollars = %s,
         date_time = NOW()
         WHERE id = %s"""
-    mysql_cursor.execute(query, (rubles, waste_or_income, description, dollars, line_id))
+    mysql_cursor.execute(
+        query, (rubles, waste_or_income, description, dollars, line_id)
+    )
     mysql_conn.commit()

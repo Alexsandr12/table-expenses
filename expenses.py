@@ -15,7 +15,7 @@ from db import (
     add_line,
     delete_line_to_id,
     delete_all_lines,
-    update_line
+    update_line,
 )
 from logger import logger_expenses
 
@@ -55,7 +55,7 @@ def get_line_to_id(line_id: int) -> tuple:
         tuple: кортеж с данными строки из таблицы.
     """
     try:
-       # print(get_data_to_id(line_id)) Почему не работает ???
+        # print(get_data_to_id(line_id)) Почему не работает ???
         return get_data_to_id(line_id)[0]
     except Error as e:
         logger_expenses.error(f"Ошибка: {e}", exc_info=True)
@@ -81,10 +81,11 @@ def add_data():
     dollars = round(rubles / get_dollar_value(), 2)
     try:
         add_line(rubles, dollars, waste_or_income, description)
-        logger_expenses.debug(f"Добавлена строка с данными: "
-                              f"rubles = {rubles}, dollars = {dollars}, "
-                              f"w/i = {waste_or_income}, description = {description}"
-                              )
+        logger_expenses.debug(
+            f"Добавлена строка с данными: "
+            f"rubles = {rubles}, dollars = {dollars}, "
+            f"w/i = {waste_or_income}, description = {description}"
+        )
         return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
         logger_expenses.error(f"Ошибка: {e}", exc_info=True)
@@ -95,10 +96,11 @@ def add_data():
 def delete_data():
     line_id = int(request.form["id"])
     delete_line = get_data_to_id(line_id)[0]
-    logger_expenses.debug(f"Запрос на удаление строки с id {line_id}, данные строки: "
-                          f"rubles = {delete_line[1]}, dollars = {delete_line[2]}, date = {delete_line[3]}, "
-                          f"w/i = {delete_line[4]}, description = {delete_line[5]}"
-                          )
+    logger_expenses.debug(
+        f"Запрос на удаление строки с id {line_id}, данные строки: "
+        f"rubles = {delete_line[1]}, dollars = {delete_line[2]}, date = {delete_line[3]}, "
+        f"w/i = {delete_line[4]}, description = {delete_line[5]}"
+    )
     try:
         delete_line_to_id(line_id)
         logger_expenses.debug(f"Удалена строка с id {line_id}")
@@ -123,10 +125,11 @@ def delete_all_data():
 def update_data():
     line_id = int(request.form["id"])
     line_to_id = get_line_to_id(line_id)
-    logger_expenses.debug(f"Запрос на изменение данных в строке с id {line_id}: "
-                          f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
-                          f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
-                          )
+    logger_expenses.debug(
+        f"Запрос на изменение данных в строке с id {line_id}: "
+        f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
+        f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
+    )
     form = request.form
     if form["rub"]:
         rubles = float(form["rub"])
@@ -147,10 +150,11 @@ def update_data():
     try:
         update_line(rubles, waste_or_income, description, dollars, line_id)
         line_to_id = get_line_to_id(line_id)
-        logger_expenses.debug(f"Данные изменены на: "
-                              f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
-                              f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
-                              )
+        logger_expenses.debug(
+            f"Данные изменены на: "
+            f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
+            f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
+        )
         return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
         logger_expenses.error(f"Ошибка: {e}", exc_info=True)
