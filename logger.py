@@ -2,7 +2,6 @@ import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
-logger_db = logging.getLogger("db")
 logger_expenses = logging.getLogger("expenses")
 my_handler = logging.FileHandler("log_table.log")
 # my_handler.setLevel(logging.DEBUG)
@@ -13,4 +12,3 @@ logger_expenses.addHandler(my_handler)
 logger_db.setLevel(logging.DEBUG)
 logger_expenses.setLevel(logging.DEBUG)
 
-logger_db.warning("ПОЧЕМУ???")

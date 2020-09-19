@@ -1,5 +1,6 @@
 import redis
 import mysql.connector
+from typing import List
 
 from config import HOST, USER, PASSWORD, DATABASE, TABLE_NAME
 
@@ -10,42 +11,42 @@ mysql_conn = mysql.connector.connect(
 )
 mysql_cursor = mysql_conn.cursor()
 
-# TODO: Traceback почему появляется в файле?
 
-
-def get_all_data() -> list:
-    """Получение всех данных из таблицы базы данных.
+def get_all_data() -> List[tuple]:
+    """Получение всех данных из таблицы.
 
     Return:
-         list: Все данные таблицы.
+         List[tuple]: Все данные таблицы.
     """
     query = f"SELECT * FROM {TABLE_NAME}"
     mysql_cursor.execute(query)
     return mysql_cursor.fetchall()
 
 
-def get_data_to_id(line_id: int) -> list:
-    """Получение значений из таблицы базы данных по заданному id.
+def get_data_to_id(line_id: int) -> List[tuple]:
+    """Получение значений из таблицы по заданному id.
 
     Args:
         line_id: id строки в таблице.
 
     Return:
-        list: Данные строки из таблицы по заданному id.
+        List[tuple]: Данные строки из таблицы по заданному id.
     """
     query = f"SELECT * FROM {TABLE_NAME} WHERE id = {line_id}"
     mysql_cursor.execute(query)
     return mysql_cursor.fetchall()
 
 
-def add_line(rubles: float, dollars: float, waste_or_income: str, description: str):
-    """Добавление новой строки в таблицу базы данных.
+def add_line(
+    rubles: float, dollars: float, waste_or_income: str, description: str
+) -> None:
+    """Добавление новой строки в таблицу.
 
     Args:
-        rubles: рубли.
-        dollars: доллары.
-        waste_or_income: расход или доход.
-        description: описание.
+        rubles: значение суммы в рублях.
+        dollars: значение суммы в долларах.
+        waste_or_income: вид транзакции (расход/доход).
+        description: описание транзакции.
     """
     query = f"""INSERT INTO expenses 
     ( rubles, dollars, date_time, waste_or_income, description ) 
@@ -54,8 +55,8 @@ def add_line(rubles: float, dollars: float, waste_or_income: str, description: s
     mysql_conn.commit()
 
 
-def delete_line_to_id(line_id: int):
-    """Удаление строки в таблице базы данных.
+def delete_line_to_id(line_id: int) -> None:
+    """Удаление строки в таблице по заданному id.
 
     Args:
         line_id: id строки в таблице.
@@ -65,8 +66,8 @@ def delete_line_to_id(line_id: int):
     mysql_conn.commit()
 
 
-def delete_all_lines():
-    """Удаление всех данных таблицы в базе данных."""
+def delete_all_lines() -> None:
+    """Удаление всех данных таблицы."""
     query = f"DELETE FROM {TABLE_NAME}"
     mysql_cursor.execute(query)
     mysql_conn.commit()
@@ -74,8 +75,8 @@ def delete_all_lines():
 
 def update_line(
     rubles: float, waste_or_income: str, description: str, dollars: float, line_id: int
-):
-    """Обновление данных строки в таблице expenses базы данных.
+) -> None:
+    """Обновление данных строки в таблице.
 
     Args:
         rubles: рубли.

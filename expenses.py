@@ -1,9 +1,11 @@
 import requests
 import re
+from typing import Tuple, Union
 
 from flask_bootstrap import Bootstrap
 from flask import Flask, request, redirect, url_for, render_template
 from mysql.connector import Error
+from werkzeug.wrappers.response import Response
 
 from config import ERROR_PAGE, METHODS, REDIRECT_PAGE
 from db import (
@@ -45,7 +47,7 @@ def get_dollar_value() -> float:
     return float(dollar_value)
 
 
-def get_line_to_id(line_id: int) -> tuple:
+def get_line_to_id(line_id: int) -> Tuple[str]:
     """Получение кортежа с данными строки из таблицы базы данных.
 
     Args:
@@ -63,7 +65,12 @@ def get_line_to_id(line_id: int) -> tuple:
 
 
 @app.route("/", methods=["GET"])
-def index():
+def index() -> str:
+    """Основной route приложения.
+
+    Returns:
+        str: html страницы.
+    """
     try:
         all_data = get_all_data()
         return render_template("index.html", data=all_data)
@@ -73,7 +80,12 @@ def index():
 
 
 @app.route("/add_data", methods=[METHODS])
-def add_data():
+def add_data() -> Union[Response, str]:
+    """Route для добавления строки с данными в таблицу.
+
+    Returns:
+        Union[Response, str]: редирект на основную html или html-страница.
+    """
     form = request.form
     rubles = float(form["rub"])
     waste_or_income = form["w/i"]
@@ -82,7 +94,7 @@ def add_data():
     try:
         add_line(rubles, dollars, waste_or_income, description)
         logger_expenses.debug(
-            f"Добавлена строка с данными: "
+            "Добавлена строка с данными: "
             f"rubles = {rubles}, dollars = {dollars}, "
             f"w/i = {waste_or_income}, description = {description}"
         )
@@ -93,7 +105,12 @@ def add_data():
 
 
 @app.route("/delete_data", methods=[METHODS])
-def delete_data():
+def delete_data() -> Union[Response, str]:
+    """Route для удаления строки с данными в таблице.
+
+    Returns:
+        Union[Response, str]: редирект на основную html или html-страница.
+    """
     line_id = int(request.form["id"])
     delete_line = get_data_to_id(line_id)[0]
     logger_expenses.debug(
@@ -111,7 +128,12 @@ def delete_data():
 
 
 @app.route("/delete_all_data", methods=[METHODS])
-def delete_all_data():
+def delete_all_data() -> Union[Response, str]:
+    """Route для удаления всех строк в таблице.
+
+    Returns:
+        Union[Response, str]: редирект на основную html или html-страница.
+    """
     try:
         delete_all_lines()
         logger_expenses.debug(f"Все данные удалены")
@@ -122,7 +144,12 @@ def delete_all_data():
 
 
 @app.route("/update_data", methods=[METHODS])
-def update_data():
+def update_data() -> Union[Response, str]:
+    """Route для изменения строки с данными в таблицу.
+
+    Returns:
+        Union[Response, str]: редирект на основную html или html-страница.
+    """
     line_id = int(request.form["id"])
     line_to_id = get_line_to_id(line_id)
     logger_expenses.debug(
@@ -151,7 +178,7 @@ def update_data():
         update_line(rubles, waste_or_income, description, dollars, line_id)
         line_to_id = get_line_to_id(line_id)
         logger_expenses.debug(
-            f"Данные изменены на: "
+            "Данные изменены на: "
             f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
             f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
         )
@@ -163,3 +190,4 @@ def update_data():
 
 if __name__ == "__main__":
     app.run()
+

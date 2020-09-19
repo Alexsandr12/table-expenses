@@ -858,3 +858,48 @@ Traceback (most recent call last):
     raise errors.InterfaceError("No result set to fetch from.")
 mysql.connector.errors.InterfaceError: No result set to fetch from.
 2020-09-08 15:48:45,641 - WARNING - db - ПОЧЕМУ???
+2020-09-08 21:05:27,441 - WARNING - db - ПОЧЕМУ???
+2020-09-08 21:06:41,175 - WARNING - db - ПОЧЕМУ???
+2020-09-08 21:06:49,724 - DEBUG - expenses - Добавлена строка с данными: rubles = 102.0, dollars = 1.35, w/i = расход, description = бургер
+2020-09-08 21:09:42,251 - WARNING - db - ПОЧЕМУ???
+2020-09-08 21:09:52,268 - DEBUG - expenses - Добавлена строка с данными: rubles = 102.0, dollars = 1.35, w/i = расход, description = бургер
+2020-09-08 21:24:34,468 - WARNING - db - ПОЧЕМУ???
+2020-09-08 21:24:43,189 - DEBUG - expenses - Добавлена строка с данными: rubles = 102.0, dollars = 1.35, w/i = расход, description = бургер
+2020-09-08 21:33:07,129 - ERROR - expenses - Exception on /add_data [POST]
+Traceback (most recent call last):
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 2447, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1952, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1821, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/_compat.py", line 39, in reraise
+    raise value
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1950, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1936, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "expenses.py", line 95, in add_data
+    add_line(rubles, dollars, waste_or_income, description)
+  File "/home/alexandr/Рабочий стол/python/flask_app/w2/table-expenses/db.py", line 56, in add_line
+    mysql_cursor.execute(quer, (rubles, dollars, waste_or_income, description))
+NameError: name 'quer' is not defined
+2020-09-08 21:34:33,197 - ERROR - expenses - Exception on /add_data [POST]
+Traceback (most recent call last):
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 2447, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1952, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1821, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/_compat.py", line 39, in reraise
+    raise value
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1950, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/alexandr/Рабочий стол/python/flask_app/env/lib/python3.8/site-packages/flask/app.py", line 1936, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "expenses.py", line 95, in add_data
+    add_line(rubles, dollars, waste_or_income, description)
+  File "/home/alexandr/Рабочий стол/python/flask_app/w2/table-expenses/db.py", line 56, in add_line
+    mysql_cursor.execute(quer, (rubles, dollars, waste_or_income, description))
+NameError: name 'quer' is not defined
