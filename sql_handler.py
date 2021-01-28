@@ -1,10 +1,7 @@
-import redis
 import mysql.connector
 from typing import List
 
 from config import HOST, USER, PASSWORD, DATABASE, TABLE_NAME
-
-redis_conn = redis.Redis()
 
 mysql_conn = mysql.connector.connect(
     host=HOST, user=USER, password=PASSWORD, database=DATABASE

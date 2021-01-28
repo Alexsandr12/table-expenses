@@ -1,6 +1,4 @@
-import requests
-import re
-from typing import Tuple, Union
+from typing import Union
 
 from flask_bootstrap import Bootstrap
 from flask import Flask, request, redirect, url_for, render_template
@@ -8,10 +6,7 @@ from mysql.connector import Error
 from werkzeug.wrappers.response import Response
 
 from config import ERROR_PAGE, METHODS, REDIRECT_PAGE
-from db import (
-    redis_conn,
-    mysql_conn,
-    mysql_cursor,
+from sql_handler import (
     get_all_data,
     get_data_to_id,
     add_line,
@@ -20,48 +15,11 @@ from db import (
     update_line,
 )
 from logger import logger_expenses
-
-# TODO: аннотации и описание
+from utilits import get_dollar_value, get_line_to_id
 
 
 app = Flask(__name__)
 Bootstrap(app)
-
-
-def get_dollar_value() -> float:
-    """Получаем значения доллара из redis, если значения нет, парсим сайт,
-    для получения значения и записываем его в redis.
-
-    Return:
-        float: значение доллара.
-    """
-    dollar_value = redis_conn.get("dollar")
-    if dollar_value is None:
-        dollar_html = requests.get("https://www.banki.ru/products/currency/usd/")
-        dollar_value = re.search(
-            r'<div class="currency-table__large-text">(\d+.\d+)', dollar_html.text
-        ).group(1)
-        dollar_value = dollar_value.replace(",", ".")
-    else:
-        dollar_value = dollar_value.decode("utf-8", "replace")
-    return float(dollar_value)
-
-
-def get_line_to_id(line_id: int) -> Tuple[str]:
-    """Получение кортежа с данными строки из таблицы базы данных.
-
-    Args:
-        line_id: id строки в таблице.
-
-    Return:
-        tuple: кортеж с данными строки из таблицы.
-    """
-    try:
-        # print(get_data_to_id(line_id)) Почему не работает ???
-        return get_data_to_id(line_id)[0]
-    except Error as e:
-        logger_expenses.error(f"Ошибка: {e}", exc_info=True)
-        return render_template(ERROR_PAGE)
 
 
 @app.route("/", methods=["GET"])
@@ -91,6 +49,7 @@ def add_data() -> Union[Response, str]:
     waste_or_income = form["w/i"]
     description = form["desc"]
     dollars = round(rubles / get_dollar_value(), 2)
+
     try:
         add_line(rubles, dollars, waste_or_income, description)
         logger_expenses.debug(
@@ -118,6 +77,7 @@ def delete_data() -> Union[Response, str]:
         f"rubles = {delete_line[1]}, dollars = {delete_line[2]}, date = {delete_line[3]}, "
         f"w/i = {delete_line[4]}, description = {delete_line[5]}"
     )
+
     try:
         delete_line_to_id(line_id)
         logger_expenses.debug(f"Удалена строка с id {line_id}")
@@ -157,6 +117,7 @@ def update_data() -> Union[Response, str]:
         f"rubles = {line_to_id[1]}, dollars = {line_to_id[2]}, date = {line_to_id[3]}, "
         f"w/i = {line_to_id[4]}, description = {line_to_id[5]}"
     )
+
     form = request.form
     if form["rub"]:
         rubles = float(form["rub"])
@@ -174,6 +135,7 @@ def update_data() -> Union[Response, str]:
         description = line_to_id[5]
 
     dollars = round(rubles / get_dollar_value(), 2)
+
     try:
         update_line(rubles, waste_or_income, description, dollars, line_id)
         line_to_id = get_line_to_id(line_id)
@@ -190,4 +152,3 @@ def update_data() -> Union[Response, str]:
 
 if __name__ == "__main__":
     app.run()
-
