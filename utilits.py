@@ -42,11 +42,7 @@ def get_line_to_id(line_id: int) -> Tuple[str]:
         tuple: кортеж с данными строки из таблицы.
     """
     try:
-        # print(get_data_to_id(line_id)) Почему не работает ???
         return get_data_to_id(line_id)[0]
     except Error as err:
         logger_expenses.error(f"Ошибка: {err}", exc_info=True)
         return render_template(ERROR_PAGE)
-
-
-
