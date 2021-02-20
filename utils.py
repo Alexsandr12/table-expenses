@@ -1,7 +1,7 @@
-import requests
 import re
 from typing import Tuple
 
+import requests
 from flask import render_template
 from mysql.connector import Error
 

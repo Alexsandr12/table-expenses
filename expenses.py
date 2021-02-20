@@ -15,7 +15,7 @@ from sql_handler import (
     update_line,
 )
 from logger import logger_expenses
-from utilits import get_dollar_value, get_line_to_id
+from utils import get_dollar_value, get_line_to_id
 
 
 app = Flask(__name__)
@@ -119,21 +119,9 @@ def update_data() -> Union[Response, str]:
     )
 
     form = request.form
-    if form["rub"]:
-        rubles = float(form["rub"])
-    else:
-        rubles = line_to_id[1]
-
-    if form["w/i"]:
-        waste_or_income = form["w/i"]
-    else:
-        waste_or_income = line_to_id[4]
-
-    if form["desc"]:
-        description = form["desc"]
-    else:
-        description = line_to_id[5]
-
+    rubles = float(form["rub"]) if form["rub"] else line_to_id[1]
+    waste_or_income = form["w/i"] if form["w/i"] else line_to_id[4]
+    description = form["desc"] if form["desc"] else line_to_id[5]
     dollars = round(rubles / get_dollar_value(), 2)
 
     try:

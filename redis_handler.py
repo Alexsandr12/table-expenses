@@ -17,5 +17,5 @@ def check_dollar_value() -> bytes:
 
     Return:
         bytes: значение доллара
-        """
+    """
     return redis_conn.get("dollar")
