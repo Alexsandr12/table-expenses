@@ -23,4 +23,4 @@ try:
     conn.commit()
     print("Таблица создана")
 except Error as e:
-    print(f"{e}")
+    print(e)

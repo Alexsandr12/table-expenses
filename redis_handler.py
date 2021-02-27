@@ -1,4 +1,5 @@
 import redis
+from typing import Union
 
 redis_conn = redis.Redis()
 
@@ -12,10 +13,10 @@ def recording_dollar_value(dollar_value: str) -> None:
     redis_conn.setex("dollar", 3600, dollar_value)
 
 
-def check_dollar_value() -> bytes:
+def check_dollar_value() -> Union[bytes, None]:
     """Проверка наличия значения доллара в кэш
 
     Return:
-        bytes: значение доллара
+        Union[bytes, None]: значение доллара или ничего
     """
     return redis_conn.get("dollar")

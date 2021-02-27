@@ -45,8 +45,8 @@ def add_line(
         waste_or_income: вид транзакции (расход/доход).
         description: описание транзакции.
     """
-    query = f"""INSERT INTO expenses 
-    ( rubles, dollars, date_time, waste_or_income, description ) 
+    query = """INSERT INTO expenses
+    ( rubles, dollars, date_time, waste_or_income, description )
     VALUES ( %s, %s, NOW(), %s, %s)"""
     mysql_cursor.execute(query, (rubles, dollars, waste_or_income, description))
     mysql_conn.commit()

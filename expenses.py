@@ -5,7 +5,7 @@ from flask import Flask, request, redirect, url_for, render_template
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
 
-from config import ERROR_PAGE, METHODS, REDIRECT_PAGE
+from config import ERROR_PAGE, REDIRECT_PAGE
 from sql_handler import (
     get_all_data,
     get_data_to_id,
@@ -37,9 +37,9 @@ def index() -> str:
         return render_template(ERROR_PAGE)
 
 
-@app.route("/add_data", methods=[METHODS])
+@app.route("/add_data", methods=["POST"])
 def add_data() -> Union[Response, str]:
-    """Route для добавления строки с данными в таблицу.
+    """Добавление строки с данными в таблицу.
 
     Returns:
         Union[Response, str]: редирект на основную html или html-страница.
@@ -63,9 +63,9 @@ def add_data() -> Union[Response, str]:
         return render_template(ERROR_PAGE)
 
 
-@app.route("/delete_data", methods=[METHODS])
+@app.route("/delete_data", methods=["POST"])
 def delete_data() -> Union[Response, str]:
-    """Route для удаления строки с данными в таблице.
+    """Удаление строки с данными в таблице.
 
     Returns:
         Union[Response, str]: редирект на основную html или html-страница.
@@ -87,23 +87,23 @@ def delete_data() -> Union[Response, str]:
         return render_template(ERROR_PAGE)
 
 
-@app.route("/delete_all_data", methods=[METHODS])
+@app.route("/delete_all_data", methods=["POST"])
 def delete_all_data() -> Union[Response, str]:
-    """Route для удаления всех строк в таблице.
+    """Удаление всех строк в таблице.
 
     Returns:
         Union[Response, str]: редирект на основную html или html-страница.
     """
     try:
         delete_all_lines()
-        logger_expenses.debug(f"Все данные удалены")
+        logger_expenses.debug("Все данные удалены")
         return redirect(url_for(REDIRECT_PAGE))
     except Error as e:
         logger_expenses.error(f"Ошибка: {e}", exc_info=True)
         return render_template(ERROR_PAGE)
 
 
-@app.route("/update_data", methods=[METHODS])
+@app.route("/update_data", methods=["POST"])
 def update_data() -> Union[Response, str]:
     """Route для изменения строки с данными в таблицу.
 
